@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Template for MatterJS Exemple</title>
+  <style>
+    *{
+      box-sizing: border-box;
+    }
+    html,body{
+      padding: 0px;
+      margin: 0px;
+    }
+    
+    #up,#down,#left,#right{
+      border: 1px solid black;
+      width: 33.33%;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    
+    #up:hover,#down:hover,#left:hover,#right:hover{
+      background: green;
+    }
+    
+    #containerBtn{
+      border: 1px solid black;
+      display: flex;
+      justify-content: space-evenly;
+    }
+    
+  </style>
+  
+       <script src="../plugin--For--MatterJS/pathsegSVG.js" type="text/javascript"></script>
+       
+       <script src="../plugin--For--MatterJS/poly-decomp.js" type="text/javascript"></script>
+         
+       <script src="../matter2.js" type="text/javascript"></script>
+       
+       <script src="../plugin--For--MatterJS/matter-wrap.js" type="text/javascript"></script>
+
+       <script src="../plugin--For--MatterJS/matter-attractors.js" type="text/javascript"></script>
+       
+       <script src="/__My_Js_Library/Canvas/myCanvas.js" type="text/javascript"></script>
+</head>
+<body>
+  <canvas id="world">
+    
+  </canvas>
+ 
+<div id="containerBtn">
+  
+ <div id="up">
+   
+ </div>
+ <div id="left">
+  
+ </div>
+ <div id="right">
+   
+ </div>
+ 
+</div>
+
+<div id="down">
+   BOUTON
+</div>
+ 
+ <script type="text/javascript">
+   
+ //======== Mettez votre code ici =====
+  var Example = Example || {};
+   
+   Example.moveInSpace = function (){
+   //================================
+    // module aliases
+     var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Composites = Matter.Composites,
+        Constraint = Matter.Constraint,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        Composite = Matter.Composite,
+        Bodies = Matter.Bodies,
+        Body = Matter.Body,
+        Vector = Matter.Vector,
+        Common = Matter.Common,
+        Events = Matter.Events;
+
+    // create engine
+    var engine = Engine.create({
+      gravity: {
+        x: 0,
+        y: 1
+      }
+    }),
+    world = engine.world;
+
+var canv = document.getElementById("world");
+
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        canvas: canv,
+        options: {
+            width: 360,
+            height: 520,
+            showAngleIndicator: true,
+            showCollisions: true,
+            showVelocity: true,
+            wireframes:false
+        }
+    });
+
+    Render.run(render);
+
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+  //=================================
+  
+     // CODE PRINCIPAL
+     
+   //---------------------------------
+   
+      var container = document.getElementById("containerBtn");
+      
+      container.before(canv);
+      
+       var btnUp = document.getElementById("up");
+       var btnDown = document.getElementById("down");
+       var btnLeft = document.getElementById("left");
+       var btnRight = document.getElementById("right");
+      
+   //------------------------------- 
+   // -------- OBJECTS -------------
+   
+    // NORMAL GROUND
+    // normal ground 1
+    var nGround1 = Bodies.rectangle(700, 600, 1500, 180, {
+       render: {
+         fillStyle: "rgba(60,60,60,1)"
+       },
+       isStatic: true,
+       chamfer: {
+         radius: [30,30,30,30]
+       }
+    });
+    
+  //----------------------
+  // normal ground 2
+    var nGround2 = Bodies.rectangle(240, 245, 230, 20, {
+       render: {
+         fillStyle: "gray"
+       },
+       isStatic: true
+    });
+    
+ // normal ground 3
+  var nGround3 = Bodies.rectangle(300, 500, 30, 30, {
+    render: {
+      fillStyle: "maroon"
+    }
+  });
+  
+ // normal ground 4
+  var nGround4 = Bodies.rectangle(250, 500, 20, 20, {
+    render: {
+      fillStyle: "maroon"
+    }
+  });
+ // normal ground 5
+  var groundNextElevator = Bodies.rectangle(905, 10, 150, 20, {
+    render: {
+      fillStyle: "gray"
+    },
+    isStatic: true
+  });
+  
+  // normal ground 6
+  // Le toit de l'ascenseur 
+  var elevatorWallUp1 = Bodies.rectangle(832, -115, 285, 20, {
+    render: {
+      fillStyle: "gray"
+    },
+    isStatic: true
+  });
+//==================================
+  // BOUTONS
+   // boutons qui activent des machines et des mécanismes
+   // Un bouton peut être de plusieurs formes : La forme générale est un cercle. Il a généralement 2 couleurs selon son état (actif:vert ou inactif: rouge).
+   // Ils sont généralement placés sur des murs, des objets, des machines...
+  // bouton1
+   var btn1Data = {
+      state: false
+   };
+   var btn1 = Bodies.circle(100,490, 15, {
+     render: {
+       fillStyle: "red"
+     },
+     isStatic: true,
+     isSensor: true
+   });
+   
+//----------------------------
+
+//====================================
+ // Les machines ou mécanismes controllés par les boutons ou qui sont automatiques
+//########   AIMANTS   ##############
+// aimant1
+  var magnet1 = Bodies.rectangle(240, 375, 230, 270, {
+    render: {
+      fillStyle: "rgba(30,150,250,0.2)"
+     // fillStyle: "transparent"
+    },
+    isStatic: true,
+    isSensor: true
+  });
+//---------------------------
+
+
+//++++++++++++++++++++++++++++++
+  var tabMagnets = [
+     magnet1
+    ];
+//##################################
+//########### ASCENSEURS #############
+ // ascenseur1
+    // bouton2
+   var btnElevatorData = {
+      state: false
+   };
+   var btnElevator = Bodies.circle(530, 390, 14, {
+     render: {
+       fillStyle: "red"
+     },
+     isSensor: true
+   });
+ //**************************
+  var elevatorGround = Bodies.rectangle(530, 420, 150, 15, {
+     render: {
+       fillStyle: "gray"
+     }
+  });
+ //***************************
+  var wallBtnElevator = Bodies.rectangle(530, 389, 40, 50, {
+      render: {
+        fillStyle: "purple"
+      },
+      isSensor: true,
+      chamfer: {
+        radius: [15,15,0,0]
+      }
+   });
+ //****************************
+  var elevator1Data = {
+    state: "down"
+  };
+  var elevator1 = Body.create({
+    parts: [elevatorGround,wallBtnElevator,btnElevator],
+    isStatic: true
+  });
+  Body.setPosition(elevator1, {
+    x: 766,
+    y: 502
+  });
+//----------------------------
+
+
+//++++++++++++++++++++++++++++++
+ var tabElevators = [
+    elevator1
+  ];
+
+//##################################
+ //########## MOVEUPDOWNBLOC ##########
+ // Un bloc qui se déplace du bas vers le haut continuellement sans intervention de l'utilisateur 
+ 
+ // moveUpDownBloc1
+ var moveUpDownBloc1 = Bodies.rectangle(550, 220, 140, 20, {
+    render: {
+      fillStyle: "gray"
+    },
+    isStatic: true,
+    chamfer: {
+      radius: [0,0,15,15]
+    }
+ });
+ 
+ 
+//------------------------
+
+
+//++++++++++++++++++++++++++++++
+// tabMoveUpDownBlocs
+var tabMoveUpDownBlocs = [
+   moveUpDownBloc1
+  ];
+  
+//#####################################
+ //########## MOVELEFTRIGHTBLOC #######
+ // Un bloc qui se déplace de la gauche vers la droite continuellement sans intervention de l'utilisateur 
+ 
+ // moveLeftRightBloc1
+ var moveLeftRightBloc1 = Bodies.rectangle(550, 455, 140, 20, {
+    render: {
+      fillStyle: "gray"
+    },
+    isStatic: true,
+    chamfer: {
+      radius: [0,0,15,15]
+    }
+ });
+ 
+ 
+//------------------------
+
+
+//++++++++++++++++++++++++++++++
+// tabMoveLeftRightBlocs
+var tabMoveLeftRightBlocs = [
+   moveLeftRightBloc1
+  ];
+  
+  
+//#####################################
+ //########## TAPIROULANT ##########
+ // Un bloc qui se comporte comme un tapi roulant (tapiroulant)
+ 
+ // tapiRoulant1
+ var tapiRoulant1 = Bodies.rectangle(1080, 455, 230, 40, {
+    render: {
+      fillStyle: "gray"
+    },
+    isStatic: true,
+    chamfer: {
+      radius: 10
+    }
+ });
+ 
+ 
+//------------------------
+
+
+//++++++++++++++++++++++++++++++
+// tabMoveLeftRightBlocs
+var tabTapiRoulants = [
+   tapiRoulant1
+  ];
+
+  
+  
+//====================================
+ 
+ 
+ // Les Tableaux contenant les objets
+ 
+  // Les machines ou les mécanismes
+  var tabMachins = [
+     // Les magnets (aimants)
+      tabMagnets,
+     // Les élévateurs (ascenseurs)
+      tabElevators,
+     // Les moveUpDownBlocs
+      tabMoveUpDownBlocs,
+     // Les moveLeftRightBlocs
+      tabMoveLeftRightBlocs,
+     // Les tapiRoulants
+      tabTapiRoulants
+    ];
+ 
+  // Grounds ( Normal Grounds)
+   var tabNGround = [
+      nGround1,nGround2,tabElevators[0].parts[1],groundNextElevator,elevatorWallUp1
+     ];
+     
+  // Ground (Moving Blocs)
+   var tabMovingBlocs = [
+       tabMoveUpDownBlocs[0],
+       tabMoveLeftRightBlocs[0]
+     ];
+  
+ // Les boutons
+  var tabBtns = [
+      btn1,tabElevators[0].parts[3]
+    ];
+ 
+   
+//=================================
+  
+   // player1 character 
+     // initial Data Player1
+     var player1Data = {
+       x: 400,
+       y: 400,
+       size: 15,
+       speed: 0.5,
+       speedOnNGround: 4,
+       speedOnMovingBloc: 0.8,
+       speedInAir: 0.3,
+       jumpStrengh: 25,
+       frictionNGround: 0.3,
+       frictionMovingBloc: 0,
+       frictionInAir: 0.01,
+       slopOnMovingBloc: 3,
+       color: "green",
+       allowUp: false,
+       allowDown: false
+     };
+    //----- Player1 AllowBtns: pour changer l'état du bouton, selon le bouton touché par le joueur.Ceux non touché par le joueur ne seront pas changés  
+      var currentBtn;// Le bouton touché par le joueur présentement 
+      var btnNb = 2;// nombre de boutons
+      var allowBtn = [];
+      
+      for(var i=0; i < btnNb; i++){
+        allowBtn[i] = false;
+      }
+    //---------------
+    // player1
+     var player1 = Bodies.circle(player1Data.x, player1Data.y, player1Data.size, {
+         render: {
+          fillStyle: player1Data.color
+       },
+       frictionAir: player1Data.frictionInAir
+     });
+     
+//===================================
+
+
+// Les murs: juste pour le test des boutons 
+  var wall1 = Bodies.rectangle(100, 486, 40, 50, {
+      isStatic: true,
+      render: {
+        fillStyle: "purple"
+      },
+      isSensor: true,
+      chamfer: {
+        radius: [15,15,0,0]
+      }
+   });
+   
+ // Les murs de l'ascenseur (elevator)
+  var elevatorWall1 = Bodies.rectangle(700, 150, 20, 530, {
+    render: {
+      fillStyle: "gray"
+    },
+    isStatic: true
+  });
+  var elevatorWall2 = Bodies.rectangle(840, 260, 20, 500, {
+    render: {
+      fillStyle: "gray"
+    },
+    isStatic: true
+  });
+  
+ //--------------------------------
+  
+    // Add object in world
+     Composite.add(world, [
+       wall1,tabBtns[0],tabMachins[0][0],
+       
+       tabMachins[1][0],elevatorWall1,elevatorWall2,groundNextElevator,elevatorWallUp1,
+       
+       tabNGround[0],tabNGround[1],nGround3,nGround4,
+       
+       tabMachins[2][0],tabMachins[3][0],
+       
+       tabTapiRoulants[0],
+       
+       player1
+    ]);
+  
+  
+  
+// ============== EVENTS ==============
+// "beforeUpdate" peut remplacer "requestAnimationFrame()"
+
+  var lastTime = 0;
+  Events.on(engine, 'beforeUpdate', function(event) {
+        var timeScale = (event.delta || (1000 / 60)) / 1000;
+        
+        
+     
+  });
+  
+//========= CHECKER LES COLLISIONS ====
+
+ // Control friction , DOWN and UP movements of player and apply condition to player according to its state
+
+ // "collisionActive" execute collisionStart dès que et tant que l'élément est en collision avec l'objet alors que 
+// "collisionStart" s'exécute une seule fois dès que l'élément entre en collision avec l'objet et après il ne s'exécute plus
+// "collisionEnd" s'exécute une seule fois dès que l'élément quitte , n'est plus en collision avec l'objet et il ne s'exécute plus
+
+Events.on(engine, 'collisionStart', function(event) {
+        var pairs = event.pairs;
+        
+        
+  }
+);
+//####################################
+// Pour les magnets 
+ var tabBodiesOnMagnet = [];
+//------------------------------
+Events.on(engine, 'collisionActive', function(event) {
+        var pairs = event.pairs;
+        
+     //--- Pour les Magnets
+     tabBodiesOnMagnet = [];
+     //-----------------------
+//-------------------------------------
+
+  //########## Pour les Normals Grounds
+      for(var k = 0; k < tabNGround.length; k++){
+         
+         // les pairs de collision 
+        for (var i = 0, j = pairs.length; i != j; ++i) {
+            var pair = pairs[i];
+
+            if (pair.bodyA === tabNGround[k] && pair.bodyB === player1) {
+              
+             pair.bodyB.frictionAir = player1Data.frictionNGround;
+              player1Data.allowUp = true;
+              player1Data.speed = player1Data.speedOnNGround;
+              
+            
+            } else if (pair.bodyB === tabNGround[k] && pair.bodyA === player1) {
+              
+              pair.bodyA.frictionAir = player1Data.frictionNGround;
+              player1Data.allowUp = true;
+              player1Data.speed = player1Data.speedOnNGround;
+                
+            }
+          }
+        }
+     //============================
+      //########## Pour les tapiRoulants
+      for(var k = 0; k < tabTapiRoulants.length; k++){
+         
+         // les pairs de collision 
+        for (var i = 0, j = pairs.length; i != j; ++i) {
+            var pair = pairs[i];
+
+            if (pair.bodyA === tabTapiRoulants[k] && pair.bodyB === player1) {
+              
+              player1Data.allowUp = true;
+              
+            
+            } else if (pair.bodyB === tabTapiRoulants[k] && pair.bodyA === player1) {
+              
+              player1Data.allowUp = true;
+                
+            }
+          }
+        }
+     //============================
+       //########## Pour les Moving Blocs
+      for(var k = 0; k < tabMovingBlocs.length; k++){
+         
+         // les pairs de collision 
+        for (var i = 0, j = pairs.length; i != j; ++i) {
+            var pair = pairs[i];
+
+            if (pair.bodyA === tabMovingBlocs[k] && pair.bodyB === player1) {
+              
+             pair.bodyB.frictionAir = player1Data.frictionMovingBloc;
+             pair.bodyB.slop = 3;
+              player1Data.allowUp = true;
+              player1Data.speed = player1Data.speedOnMovingBloc;
+              
+            
+            } else if (pair.bodyB === tabMovingBlocs[k] && pair.bodyA === player1) {
+              
+              pair.bodyA.frictionAir = player1Data.frictionMovingBloc;
+              pair.bodyA.slop = 3;
+              player1Data.allowUp = true;
+              player1Data.speed = player1Data.speedOnMovingBloc;
+                
+            }
+          }
+        }
+   //================================
+    //########## Pour les boutons
+      for(var k = 0; k < tabBtns.length; k++){
+         
+       // les pairs de collision 
+        for (var i = 0, j = pairs.length; i != j; ++i) {
+            var pair = pairs[i];
+
+            if (pair.bodyA === tabBtns[k] && pair.bodyB === player1) {
+              
+              // L'état des boutons 
+              currentBtn = k;
+              allowBtn[k] = true;
+              
+            
+            } else if (pair.bodyB === tabBtns[k] && pair.bodyA === player1) {
+              
+              // L'état des boutons 
+              currentBtn = k;
+              allowBtn[k] = true;
+                
+            }
+          }
+        }
+      //============================
+    //########## Pour les magnets (aimants)
+      for(var k = 0; k < tabMachins[0].length; k++){
+         
+       // les pairs de collision 
+        for (var i = 0, j = pairs.length; i != j; ++i) {
+            var pair = pairs[i];
+
+            if (pair.bodyA === tabMachins[0][k]) {
+           
+           // Pour les magnets
+             tabBodiesOnMagnet.push(pair.bodyB);
+            
+            } else if (pair.bodyB === tabMachins[0][k]) {
+              
+           // Pour les magnets 
+              tabBodiesOnMagnet.push(pair.bodyA);
+                
+            }
+          }
+        }
+      //============================
+        
+    }
+  );
+  
+//####################################
+Events.on(engine, 'collisionEnd', function(event) {
+  
+        player1.frictionAir = player1Data.frictionInAir;
+        player1Data.allowUp = false;
+        player1Data.speed = player1Data.speedInAir;
+     
+     //-----------------------------
+       // pour les boutons : L'état des boutons 
+       allowBtn[currentBtn] = false;
+      
+      //-----------------------------
+      // pour les movingBlocs
+        player1.slop = 0.05;
+       
+      // pour les magnets (Les tabBodiesOnMagnet) 
+       tabBodiesOnMagnet = [];
+       
+     }
+   );
+
+//===== CHECKER LES COLLISIONS FIN ===
+    
+// ============== EVENTS ==============
+    
+    
+  // Control player movements ---------
+     // UP
+       btnUp.addEventListener("pointerdown",function(){
+        if(player1Data.allowUp){
+          Body.applyForce(player1, player1.position, {
+            x: 0,
+            y: - (player1.mass * player1Data.jumpStrengh * engine.gravity.scale)
+          });
+         }
+   
+       },false);
+ //-----------------------------
+ 
+     // DOWN
+       btnDown.addEventListener("pointerdown",function(){
+        if(player1Data.allowDown){
+          Body.applyForce(player1, player1.position, {
+            x: 0,
+            y: player1.mass * player1Data.speed * engine.gravity.scale
+          });
+        }
+       },false);
+       
+//==================================
+    // pour les boutons 
+       // bouton 1 : Le premier bouton
+       // allowBtn[0] : l'etat du premier bouton 
+       btnDown.addEventListener("click",function(){
+         if(allowBtn[0] == true && btn1Data.state == false ){
+           
+           btn1Data.state = true;
+           btn1.render.fillStyle = "green";
+          
+         }else if(allowBtn[0] == true && btn1Data.state == true){
+           
+           btn1Data.state = false;
+           btn1.render.fillStyle = "red";
+          
+         }
+       },false);
+       
+    // bouton 2 : Le deuxième bouton
+       // allowBtn[1] (le bouton du premier ascenseur (elevator1)) : l'etat du deuxième bouton (allowBtn[1])
+       btnDown.addEventListener("click",function(){
+         if(allowBtn[1] == true && btnElevatorData.state == false ){
+           
+           btnElevatorData.state = true;
+           tabElevators[0].parts[3].render.fillStyle = "green";
+          
+         }else if(allowBtn[1] == true && btnElevatorData.state == true){
+           
+           btnElevatorData.state = false;
+           tabElevators[0].parts[3].render.fillStyle = "red";
+          
+         }
+       },false);
+       
+ 
+//=====================================
+   
+    // Move continuously player left or right  
+     // ========== LEFT
+      var checkLeft;
+       btnLeft.addEventListener("pointerdown",function(){
+         checkLeft = true;
+       },false);
+       
+       btnLeft.addEventListener("pointerup",function(){
+         checkLeft = false;
+       },false);
+       
+     //-----------------------------
+     // ========= RIGHT
+       var checkRight;
+       btnRight.addEventListener("pointerdown",function(){
+         checkRight = true;
+       },false);
+       
+       btnRight.addEventListener("pointerup",function(){
+         checkRight = false;
+       },false);
+     
+  //--------------------------------
+  
+//====================================
+ // Zone concernant les éléments à l'intérieur de runningMotor
+ //************************************
+//#####################################
+   // Pour les moveLeftRightBlocs
+    //+++++++++++++++++++++++++++
+    var speedLeftRight1 = -2;
+    var checkMoveLeftRightSense1;
+    
+   //--------------------------
+   
+//###################################
+   // Pour les moveUpDownBlocs
+    //+++++++++++++++++++++++++++
+    var speedUpDown1 = -2;
+    var checkMoveUpDown1;
+    
+   //--------------------------
+   
+//###################################
+
+
+//======================================
+
+ // ------- APPLY THE CODE -------
+  (function runningMotor(event){
+        // Left
+        // Si checkLeft == true : faire ceci sinon ne rien faire 
+        if(checkLeft === true){
+          Body.applyForce(player1, player1.position, {
+            x: - (player1.mass * player1Data.speed * engine.gravity.scale),
+            y: 0
+          });
+        }
+          
+      //==========================
+        // Right 
+       // Si checkRight == true : faire ceci sinon ne rien faire 
+       if(checkRight === true){
+          Body.applyForce(player1, player1.position, {
+            x: player1.mass * player1Data.speed * engine.gravity.scale,
+            y: 0
+          });
+        }
+//=====================================
+// POUR LES MACHINES ET LES MÉCANISMES
+
+  // Pour les magnets
+ // magnet1 (Le premier aimant)
+   if(btn1Data.state == true){
+     
+      for(var i = 0;i < tabBodiesOnMagnet.length; i++){
+         
+         Body.setGravity(engine, tabBodiesOnMagnet[i], 0, -1.8);
+      }
+        
+   }
+  //---------------------------
+  
+ //**********************************
+  // Pour les ascenseurs
+  // elevator1 (le premier ascenseur)
+  
+  // faire monter l'ascenseur 1
+   if(btnElevatorData.state == true && elevator1Data.state == "down" && tabElevators[0].position.y >= -8.5){
+     
+     Body.setPosition(tabElevators[0], {
+       x: tabElevators[0].position.x,
+       y: tabElevators[0].position.y-1
+     });
+     
+     if(tabElevators[0].position.y <= -8.5){
+       btnElevatorData.state = false;
+       tabElevators[0].parts[3].render.fillStyle = "red";
+       
+       elevator1Data.state = "up";
+     }
+   }
+   
+ // faire descendre l'ascenseur 1
+   if(btnElevatorData.state == true && elevator1Data.state == "up" && tabElevators[0].position.y <= 502){
+     
+     Body.setPosition(tabElevators[0], {
+       x: tabElevators[0].position.x,
+       y: tabElevators[0].position.y+1
+     });
+     
+     if(tabElevators[0].position.y >= 502){
+       btnElevatorData.state = false;
+       tabElevators[0].parts[3].render.fillStyle = "red";
+       
+       elevator1Data.state = "down";
+     }
+    
+   }
+  //------------------------------
+ 
+ 
+ 
+//*************************************
+ // Pour les moveUpDownBlocs
+ 
+ // Pour le moveUpDownBloc1
+if(tabMoveUpDownBlocs[0].position.y  < 220 - 250){
+   
+    speedUpDown1 = 0.1;
+    checkMoveUpDown1 = "down";
+    
+ } else if(tabMoveUpDownBlocs[0].position.y > 220 + 250){
+   
+    speedUpDown1 = -0.1;
+    checkMoveUpDown1 = "up";
+    
+ }
+ 
+ if(tabMoveUpDownBlocs[0].position.y  > (220 - 250)+2 && tabMoveUpDownBlocs[0].position.y < (220 + 250)-2){
+     
+     if(checkMoveUpDown1 == "down"){
+           speedUpDown1 = 2;
+     } else if(checkMoveUpDown1 == "up"){
+           speedUpDown1 = -2;
+     }
+     
+ }
+ 
+ 
+ Body.setPosition(tabMoveUpDownBlocs[0], {
+   x: tabMoveUpDownBlocs[0].position.x,
+   y: tabMoveUpDownBlocs[0].position.y + (speedUpDown1)
+ }, true);
+
+ //------------------------------------
+   
+   
+//*************************************
+ // Pour les moveLeftRightBlocs
+ 
+  // Pour le moveLeftRightBloc1
+ if(tabMoveLeftRightBlocs[0].position.x  < 550 - 220){
+   
+    speedLeftRight1 = 0.1;
+    checkMoveLeftRightSense1 = "right";
+    
+ } else if(tabMoveLeftRightBlocs[0].position.x > 550 + 220){
+   
+    speedLeftRight1 = -0.1;
+    checkMoveLeftRightSense1 = "left";
+    
+ }
+ 
+ if(tabMoveLeftRightBlocs[0].position.x  > (550 - 220)+2 && tabMoveLeftRightBlocs[0].position.x < (550 + 220)-2){
+     
+     if(checkMoveLeftRightSense1 == "right"){
+           speedLeftRight1 = 2;
+     } else if(checkMoveLeftRightSense1 == "left"){
+           speedLeftRight1 = -2;
+     }
+     
+ }
+ 
+ 
+ Body.setPosition(tabMoveLeftRightBlocs[0], {
+   x: tabMoveLeftRightBlocs[0].position.x + (speedLeftRight1),
+   y: tabMoveLeftRightBlocs[0].position.y
+ }, true);
+ 
+ //-----------------------------------
+   
+   
+//************************************
+  // Pour les TAPIROULANTS
+   
+   // Le tapiRoulant1
+   // x dans velocity,représente la vitesse et le sens du tapiRoulant
+   // Exemple : x = -3 alors le tapiRoulant sera un peu rapide (avec une vitesse de 3) et ira dans le sens négatif (vers la gauche )
+    Body.setVelocity(tabTapiRoulants[0], {
+       x: -1.5,
+       y: 0
+      });
+       
+    Body.setPosition(tabTapiRoulants[0], {
+        x: tabTapiRoulants[0].position.x,
+        y: tabTapiRoulants[0].position.y
+       }, false);
+   
+ //-------------------------------
+  
+  
+//************************************
+  
+   requestAnimationFrame(runningMotor);
+  })();
+
+//=====================================
+// Camera On Axe X following Player1
+
+   var minX=0 ,minY=0 ,maxX=render.canvas.width ,maxY=render.canvas.height;
+    
+   (function renderShow(param){
+   /*  if(ball.position.x + 0.33 > render.bounds.min.x + 230){
+      
+      minX += ball.speed;
+    }else if(ball.position.x - 0.33 < render.bounds.min.x + 100){
+      
+      minX -= ball.speed;
+    } 
+
+     
+    Render.lookAt(render,{
+      min:{
+        x: minX,
+        y: minY
+      },
+      max:{
+        x: maxX,
+        y: maxY
+      }
+    },undefined,true);
+  */
+    
+  
+    Render.lookAt(render,{
+      min:{
+        x: player1.position.x,
+        y: player1.position.y - 450,
+      },
+      max:{
+        x: player1.position.x + 10,
+        y: player1.position.y + 140
+      }
+    },undefined,true);
+  
+   
+    requestAnimationFrame(renderShow);
+    
+  })();
+  
+//====================================
+   // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
+            }
+        });
+
+    Composite.add(world, mouseConstraint);
+
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
+     
+     
+  //===================================
+     return {
+        engine: engine,
+        runner: runner,
+        render: render,
+        canvas: render.canvas,
+        stop: function() {
+            Matter.Render.stop(render);
+            Matter.Runner.stop(runner);
+        }
+    };
+  };
+   
+ //================================
+   
+   
+// Lancement de l'exemple : "airFiction" doit être remplacé par le nom de l'exemple
+window.addEventListener("load",Example.moveInSpace,false);
+
+ </script>
+</body>
+</html>

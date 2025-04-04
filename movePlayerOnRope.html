@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Template for MatterJS Exemple</title>
+  <style>
+    *{
+      box-sizing: border-box;
+    }
+    html,body{
+      padding: 0px;
+      margin: 0px;
+    }
+    
+    #up,#down,#left,#right{
+      border: 1px solid black;
+      width: 33.33%;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    
+    #up:hover,#down:hover,#left:hover,#right:hover{
+      background: green;
+    }
+    
+    #containerBtn{
+      border: 1px solid black;
+      display: flex;
+      justify-content: space-evenly;
+    }
+    
+  </style>
+  
+       <script src="../plugin--For--MatterJS/pathsegSVG.js" type="text/javascript"></script>
+       
+       <script src="../plugin--For--MatterJS/poly-decomp.js" type="text/javascript"></script>
+         
+       <script src="../matter2.js" type="text/javascript"></script>
+       
+       <script src="../plugin--For--MatterJS/matter-wrap.js" type="text/javascript"></script>
+
+       <script src="../plugin--For--MatterJS/matter-attractors.js" type="text/javascript"></script>
+       
+       <script src="/__My_Js_Library/Canvas/myCanvas.js" type="text/javascript"></script>
+</head>
+<body>
+  <canvas id="world">
+    
+  </canvas>
+ 
+<div id="containerBtn">
+  
+ <div id="up">
+   
+ </div>
+ <div id="left">
+  
+ </div>
+ <div id="right">
+   
+ </div>
+ 
+</div>
+
+<div id="down">
+   
+</div>
+ 
+ <script type="text/javascript">
+   
+ //======== Mettez votre code ici =====
+  var Example = Example || {};
+   
+   Example.moveInSpace = function (){
+   //================================
+    // module aliases
+     var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Composites = Matter.Composites,
+        Constraint = Matter.Constraint,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        Composite = Matter.Composite,
+        Bodies = Matter.Bodies,
+        Body = Matter.Body,
+        Vector = Matter.Vector,
+        Common = Matter.Common,
+        Events = Matter.Events;
+
+    // create engine
+    var engine = Engine.create({
+      gravity: {
+        x: 0,
+        y: 1
+      }
+    }),
+    world = engine.world;
+
+var canv = document.getElementById("world");
+
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        canvas: canv,
+        options: {
+            width: 360,
+            height: 520,
+            showAngleIndicator: true,
+            showCollisions: true,
+            showVelocity: true,
+            wireframes:false
+        }
+    });
+
+    Render.run(render);
+
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+  //=================================
+  
+     // CODE PRINCIPAL
+     
+   //---------------------------------
+   
+      var container = document.getElementById("containerBtn");
+      
+      container.before(canv);
+      
+       var btnUp = document.getElementById("up");
+       var btnDown = document.getElementById("down");
+       var btnLeft = document.getElementById("left");
+       var btnRight = document.getElementById("right");
+      
+   //------------------------------- 
+    // normal ground1
+    var nGround1 = Bodies.rectangle((360/2)+0,(20/2)+510, 360, 20, {
+       render: {
+         fillStyle: "gray"
+       },
+       isStatic: true
+    });
+    
+   //--------------------------
+   // ROPES --------------
+ // rope1------------------------
+   var group1 = Body.nextGroup(true);
+
+    var rope1 = Composites.stack(300, 250, 12, 1, 10, 10, function(x, y) {
+        return Bodies.rectangle(x - 20, y, 30, 10, {
+          collisionFilter: { 
+            group: group1 
+          },
+          chamfer: 1,
+          render: {
+            fillStyle: "black"
+          }
+        });
+    });
+    Composites.chain(rope1, 0.3, 0, -0.3, 0, {
+      stiffness: 1,
+      length: 0,
+      render: {
+        type: "pin",
+        strokeStyle: "black"
+      }
+    });
+    Composite.add(rope1, Constraint.create({ 
+        bodyB: rope1.bodies[0],
+        pointB: { x: -10, y: 0 },
+        pointA: { 
+          x: rope1.bodies[0].position.x,
+          y: rope1.bodies[0].position.y },
+        stiffness: 0.5,
+        render: {
+          type: "line"
+        },
+        length: 0
+    }));
+//----------Fin rope1-------------------
+
+// rope2------------------------------
+   var group2 = Body.nextGroup(true);
+
+    var rope2 = Composites.stack(50, 200, 12, 1, 10, 10, function(x, y) {
+        return Bodies.rectangle(x - 20, y, 30, 20, {
+          collisionFilter: { 
+            group: group2
+          },
+          chamfer: 1,
+          render: {
+            fillStyle: "black"
+          }
+        });
+    });
+    Composites.chain(rope2, 0.3, 0, -0.3, 0, {
+      stiffness: 1,
+      length: 0,
+      render: {
+        type: "pin",
+        strokeStyle: "black"
+      }
+    });
+   // Body.scale(rope2.bodies[11], 3,3);
+  /*  Composite.add(rope2, Constraint.create({ 
+        bodyB: rope2.bodies[0],
+        pointB: { x: -10, y: 0 },
+        pointA: { 
+          x: rope2.bodies[0].position.x,
+          y: rope2.bodies[0].position.y },
+        stiffness: 0.5,
+        render: {
+          type: "line"
+        },
+        length: 0
+    }));
+  */
+//----------Fin rope2-----------------
+
+
+  //==============================
+  // Grounds ( Normal Grounds)
+   var tabNGround = [
+      nGround1
+     ];
+  
+  // Ropes
+   var tabRope = [
+      rope1,rope2
+     ];
+   
+  
+   // player1 character 
+     // initial Data Player1
+     var player1Data = {
+       x: render.options.width / 5,
+       y: render.options.height / 2,
+       size: 13,
+       speed: 0.5,
+       speedOnNGround: 4,
+       speedInAir: 0.3,
+       speedOnRope: 0.8,
+       jumpStrengh: 25,
+       jumpStrenghRope: 5,
+       frictionNGround: 0.3,
+       frictionInAir: 0.01,
+       frictionRope: 0.01,
+       color: "green",
+       allowUp: false,
+       allowDown: false,
+       allowRope: false
+     };
+    // player1
+     var player1 = Bodies.circle(player1Data.x, player1Data.y, player1Data.size, {
+         render: {
+          fillStyle: player1Data.color
+       },
+       frictionAir: player1Data.frictionInAir,
+       isSensor: false,
+       mass: 5
+     });
+    //--------------------------
+  
+    // Add object in world
+     Composite.add(world, [
+        tabRope[0],
+        tabRope[1],
+        tabNGround[0],
+        player1
+        
+       ]);
+  
+ //========= TEST AREA ================
+ var brick = Bodies.rectangle((50/2)+100,(50/2)+260,50,50,{isStatic:true,chamfer: 10});
+  
+var b = Bodies.circle(50,200,15,{
+  mass: 4
+});
+    Composite.add(world, [
+       b,brick,
+       Constraint.create({
+         bodyA: rope2.bodies[0],
+         pointA: {x:-15,y:0},
+         bodyB: b
+       })
+      ]);
+ 
+ 
+ //==================================
+  
+//========= CHECKER LES COLLISIONS =====
+
+ // Control friction , DOWN and UP movements of player and apply condition to player according to its state
+
+ // "collisionActive" execute collisionStart dès que et tant que l'élément est en collision avec l'objet alors que 
+// "collisionStart" s'exécute une seule fois dès que l'élément entre en collision avec l'objet et après il ne s'exécute plus
+// "collisionEnd" s'exécute une seule fois dès que l'élément quitte , n'est plus en collision avec l'objet et il ne s'exécute plus
+//==========================
+// Pour les ropes 
+  var count = 0;// nombre de collision avec la corde (rope)
+  var currentConstraintRope;
+  var currentBodyPosition;
+  var currentRopeLength;
+  var currentRope;
+  var currentPlayer;
+  var ropeGravity = "down";
+  
+//---------------------------------
+  Events.on(engine, 'collisionActive', function(event) {
+        var pairs = event.pairs;
+        
+    //########## Pour les Normals Grounds
+      for(var k = 0; k < tabNGround.length; k++){
+         
+         // les pairs de collision 
+        for (var i = 0, j = pairs.length; i != j; ++i) {
+            var pair = pairs[i];
+
+            if (pair.bodyA === tabNGround[k] && pair.bodyB === player1) {
+              
+             pair.bodyB.frictionAir = player1Data.frictionNGround;
+              player1Data.allowUp = true;
+              player1Data.speed = player1Data.speedOnNGround;
+         
+            
+            } else if (pair.bodyB === tabNGround[k] && pair.bodyA === player1) {
+              
+              pair.bodyA.frictionAir = player1Data.frictionNGround;
+              player1Data.allowUp = true;
+              player1Data.speed = player1Data.speedOnNGround;
+                
+            }
+          }
+        }
+      //============================
+     //########## Pour les Ropes
+    for(var k = 0; k < tabRope.length; k++){
+       
+       // pour les éléments de chaque ropes
+     for(var l = 0; l < tabRope[k].bodies.length; l++){
+      
+         // les pairs de collision 
+        for (var i = 0, j = pairs.length; i != j; ++i) {
+            var pair = pairs[i];
+
+          if (pair.bodyA === tabRope[k].bodies[l] && pair.bodyB === player1) {
+           
+           pair.bodyB.isSensor = true;
+           player1.frictionAir = player1Data.frictionRope;
+           player1Data.speed = player1Data.speedOnRope;
+           player1Data.allowRope = true;
+         
+     //----------------------------
+        // Coller le joueur sur la corde
+            count += 1;
+        if(count == 1){
+          
+            currentConstraintRope = Constraint.create({
+              bodyA: pair.bodyA,
+              bodyB: pair.bodyB,
+              render: {
+                strokeStyle: "transparent"
+              }
+           });
+           // add in world
+            Composite.add(world, currentConstraintRope);
+            
+        currentBodyPosition = l;
+        currentRopeLength = tabRope[k].bodies.length;
+        currentRope = tabRope[k];
+        currentPlayer = pair.bodyB;
+      }
+     //------------------------------
+            
+    } else if (pair.bodyB === tabRope[k].bodies[l] && pair.bodyA === player1) {
+              
+           pair.bodyA.isSensor = true;
+           player1.frictionAir = player1Data.frictionRope;
+           player1Data.speed = player1Data.speedOnRope;
+           player1Data.allowRope = true;
+      //----------------------------
+        // Coller le joueur sur la corde
+            count += 1;
+        if(count == 1){
+          
+            currentConstraintRope = Constraint.create({
+              bodyA: pair.bodyB,
+              bodyB: pair.bodyA,
+              render: {
+                strokeStyle: "transparent"
+              }
+           });
+           // add in world
+            Composite.add(world, currentConstraintRope);
+            
+            currentBodyPosition = l;
+            currentRopeLength = tabRope[k].bodies.length;
+            currentRope = tabRope[k];
+            currentPlayer = pair.bodyB;
+        }
+     //------------------------------
+                
+            }
+          }
+        }
+       }
+      //============================
+        
+    }
+  );
+
+   //---------------------------------
+   
+    Events.on(engine, 'collisionEnd', function(event) {
+  
+        player1.frictionAir = player1Data.frictionInAir;
+        player1Data.allowUp = false;
+        player1Data.speed = player1Data.speedInAir;
+     // for Ropes
+        player1.isSensor = false;
+        player1Data.allowRope = false;
+       // count = 0;
+              
+     }
+   );
+
+//===== CHECKER LES COLLISIONS FIN =====
+    
+    
+    
+  // Control player movements ----------
+     // UP
+     var checkUp;
+       btnUp.addEventListener("pointerdown",function(){
+        if(player1Data.allowUp){
+          Body.applyForce(player1, player1.position, {
+            x: 0,
+            y: - (player1.mass * player1Data.jumpStrengh * engine.gravity.scale)
+          });
+        }
+          // for Ropes 
+           checkUp = true;
+      },false);
+      btnUp.addEventListener("pointerup",function(){
+          // for Ropes 
+           checkUp = false;
+        
+      },false);
+
+
+     // DOWN
+     var checkDown;
+       btnDown.addEventListener("pointerdown",function(){
+        if(player1Data.allowDown){
+          Body.applyForce(player1, player1.position, {
+            x: 0,
+            y: player1.mass * player1Data.speed * engine.gravity.scale
+          });
+        }
+       // for Ropes
+        checkDown = true;
+       },false);
+       btnDown.addEventListener("pointerup",function(){
+          // for Ropes 
+           checkDown = false;
+        
+      },false);
+       
+       
+    // Move continuously player left or right  
+     // ========== LEFT
+      var checkLeft;
+       btnLeft.addEventListener("pointerdown",function(){
+         checkLeft = true;
+       },false);
+       
+       btnLeft.addEventListener("pointerup",function(){
+         checkLeft = false;
+       },false);
+       
+     // For Ropes
+      // Enlever le joueur de la corde A gauche
+      btnLeft.addEventListener("dblclick",function(){
+        if(player1Data.allowRope){
+          
+          Composite.remove(world, currentConstraintRope);
+          count = -12;
+          Body.applyForce(currentPlayer,currentPlayer.position,{
+            x:  - (player1.mass * player1Data.jumpStrenghRope * engine.gravity.scale),
+            y:  - (player1.mass * player1Data.jumpStrengh * engine.gravity.scale)
+          });
+          
+        }
+        
+      },false);
+        
+      
+       
+     //-----------------------------
+     // ========= RIGHT
+       var checkRight;
+       btnRight.addEventListener("pointerdown",function(){
+         checkRight = true;
+       },false);
+       
+       btnRight.addEventListener("pointerup",function(){
+         checkRight = false;
+       },false);
+       
+    // For Ropes
+      // Enlever le joueur de la corde A Droite
+      btnRight.addEventListener("dblclick",function(){
+        if(player1Data.allowRope){
+          
+          Composite.remove(world, currentConstraintRope);
+          count = -12;
+          Body.applyForce(currentPlayer,currentPlayer.position,{
+            x:  (player1.mass * player1Data.jumpStrenghRope * engine.gravity.scale),
+            y:  - (player1.mass * player1Data.jumpStrengh * engine.gravity.scale)
+          });
+          
+        }
+        
+      },false);
+     
+     
+   
+      // ------- APPLY THE CODE -------
+      (function moveLeftRightUpDown(event){
+        // Left
+        // Si checkLeft == true : faire ceci sinon ne rien faire 
+        if(checkLeft === true){
+          Body.applyForce(player1, player1.position, {
+            x: - (player1.mass * player1Data.speed * engine.gravity.scale),
+            y: 0
+          });
+        }
+          
+      //==========================
+        // Right 
+       // Si checkRight == true : faire ceci sinon ne rien faire 
+       if(checkRight === true){
+          Body.applyForce(player1, player1.position, {
+            x: player1.mass * player1Data.speed * engine.gravity.scale,
+            y: 0
+          });
+        }
+    //============================
+        // Up
+        // Faire monter le joueur sur la corde 
+       var nextBodyPosition;
+        if(checkUp == true && player1Data.allowRope == true){
+          if(ropeGravity == "down"){
+            if(currentBodyPosition - 1 >= 0){
+              
+             nextBodyPosition = currentBodyPosition -1;
+              
+              Composite.remove(world, currentConstraintRope);
+              //count = 0;
+              
+              currentConstraintRope = Constraint.create({
+                bodyA: currentRope.bodies[nextBodyPosition],
+                bodyB: player1,
+                render: {
+                  strokeStyle: "transparent"
+                },
+                length: 20
+              });
+              Composite.add(world, currentConstraintRope);
+              
+              currentBodyPosition = nextBodyPosition;
+            }
+          }else if(ropeGravity == "up"){
+            if(currentBodyPosition + 1 <= currentRopeLength-1){
+              
+             nextBodyPosition = currentBodyPosition +1;
+              
+              Composite.remove(world, currentConstraintRope);
+              //count = 0;
+              
+              currentConstraintRope = Constraint.create({
+                bodyA: currentRope.bodies[nextBodyPosition],
+                bodyB: player1,
+                render: {
+                  strokeStyle: "transparent"
+                },
+                length: 20
+              });
+              Composite.add(world, currentConstraintRope);
+              
+              currentBodyPosition = nextBodyPosition;
+            }
+          }
+        }
+    //===============================
+      // Down
+      // Faire descendre le joueur sur la corde 
+        if(checkDown == true && player1Data.allowRope == true){
+          if(ropeGravity == "down"){
+            if(currentBodyPosition + 1 <= currentRopeLength-1){
+              
+             nextBodyPosition = currentBodyPosition + 1;
+              
+              Composite.remove(world, currentConstraintRope);
+              //count = 0;
+              
+              currentConstraintRope = Constraint.create({
+                bodyA: currentRope.bodies[nextBodyPosition],
+                bodyB: player1,
+                render: {
+                  strokeStyle: "transparent"
+                },
+                length: 20
+              });
+              Composite.add(world, currentConstraintRope);
+              
+              currentBodyPosition = nextBodyPosition;
+            }
+          }else if(ropeGravity == "up"){
+            if(currentBodyPosition - 1 >= 0){
+              
+             nextBodyPosition = currentBodyPosition -1;
+              
+              Composite.remove(world, currentConstraintRope);
+              //count = 0;
+              
+              currentConstraintRope = Constraint.create({
+                bodyA: currentRope.bodies[nextBodyPosition],
+                bodyB: player1,
+                render: {
+                  strokeStyle: "transparent"
+                },
+                length: 20
+              });
+              Composite.add(world, currentConstraintRope);
+              
+              currentBodyPosition = nextBodyPosition;
+            }
+          }
+        }
+
+ 
+        requestAnimationFrame(moveLeftRightUpDown);
+      })();
+
+//=====================================
+// Camera On Axe X following Player1
+
+   var minX=0 ,minY=0 ,maxX=render.canvas.width ,maxY=render.canvas.height;
+    
+   (function renderShow(param){
+   /*  if(ball.position.x + 0.33 > render.bounds.min.x + 230){
+      
+      minX += ball.speed;
+    }else if(ball.position.x - 0.33 < render.bounds.min.x + 100){
+      
+      minX -= ball.speed;
+    } 
+
+     
+    Render.lookAt(render,{
+      min:{
+        x: minX,
+        y: minY
+      },
+      max:{
+        x: maxX,
+        y: maxY
+      }
+    },undefined,true);
+  */
+    
+   /*
+    Render.lookAt(render,{
+      min:{
+        x: player1.position.x - 10,
+        y: minY
+      },
+      max:{
+        x: player1.position.x + 10,
+        y: maxY
+      }
+    },undefined,true);
+   */
+    
+    requestAnimationFrame(renderShow);
+    
+  })();
+  
+//====================================
+   // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
+            }
+        });
+
+    Composite.add(world, mouseConstraint);
+
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
+     
+     
+  //===================================
+     return {
+        engine: engine,
+        runner: runner,
+        render: render,
+        canvas: render.canvas,
+        stop: function() {
+            Matter.Render.stop(render);
+            Matter.Runner.stop(runner);
+        }
+    };
+  };
+   
+ //================================
+   
+   
+// Lancement de l'exemple : "airFiction" doit être remplacé par le nom de l'exemple
+window.addEventListener("load",Example.moveInSpace,false);
+
+ </script>
+</body>
+</html>

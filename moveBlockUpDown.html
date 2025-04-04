@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+</head>
+
+<body>
+<h3>Pour pouvoir réaliser en MatterJS, le mouvement de bloc qui va vers le haut puis vers le bas ou vers la gauche puis vers la droite continuellement et sans manipulation comme dans les jeux vidéos tels que : Mario, les anciens jeux retro ,.....Voici la formule :
+  <br><br>
+       // make bodyA move up and down <br><br>
+       // Formule py: <br><br>
+       // py = (position initiale de l'objet:sur X ou sur Y) + ( distance à parcourir par l'objet (en bas comme en haut pour Y ou à gauche comme à droite pour X ) ) * sin(engine.timing.timestamp * engine.gravity.scale) <br><br>
+        var py =  300 + 250 * Math.sin(engine.timing.timestamp * engine.gravity.scale);<br><br>
+       // déplacer le bloc en faisant un mouvement de bas vers le haut : sur l'axe Y, et mettre à jour la rapidité (velocity)<br><br>
+  // Body.setPosition(bodyA, { x: 100, y: py }, true);<br/><br>
+       // Ici à chaque répétition de beforeUpdate ou requestAnimationFrame(), le bloc bodyA ,ira de sa position initiale (x:100,y:300) vers le bas à (x:100,y:300 + 250) et remontera vers le haut à (x:100,y:300 - 250) et redescendra à (x:100,y:300 + 250) et remontera à (x:100,y:300 - 250), et effectuera ce même mouvement indéfiniment ou jusqu'a ce que on enlève le beforeUpdate ou on arrête le requestAnimationFrame()<br /><br>
+       //Attention, pour que tous cela marche, il faut repeter cela plusieurs fois.Il faut mettre tous ça dans un beforeUpdate ou un requestAnimationFrame();
+       <br><br>
+       VOIR ascenseurManipulation.html ou tapiRoulantEtVoiture.html pour plus d'informations  
+     </h3>
+</body>
+
+</html>

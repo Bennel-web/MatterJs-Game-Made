@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Template for MatterJS Exemple</title>
+  <style>
+    *{
+      box-sizing: border-box;
+    }
+    html,body{
+      padding: 0px;
+      margin: 0px;
+    }
+    
+    #up,#down,#left,#right{
+      border: 1px solid black;
+      width: 33.33%;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    
+    #up:hover,#down:hover,#left:hover,#right:hover{
+      background: green;
+    }
+    
+    #containerBtn{
+      border: 1px solid black;
+      display: flex;
+      justify-content: space-evenly;
+    }
+    
+  </style>
+  
+       <script src="../plugin--For--MatterJS/pathsegSVG.js" type="text/javascript"></script>
+       
+       <script src="../plugin--For--MatterJS/poly-decomp.js" type="text/javascript"></script>
+         
+       <script src="../matter2.js" type="text/javascript"></script>
+       
+       <script src="../plugin--For--MatterJS/matter-wrap.js" type="text/javascript"></script>
+
+       <script src="../plugin--For--MatterJS/matter-attractors.js" type="text/javascript"></script>
+       
+       <script src="/__My_Js_Library/Canvas/myCanvas.js" type="text/javascript"></script>
+</head>
+<body>
+  <canvas id="world">
+    
+  </canvas>
+ 
+<div id="containerBtn">
+  
+ <div id="up">
+   
+ </div>
+ <div id="left">
+  
+ </div>
+ <div id="right">
+   
+ </div>
+ 
+</div>
+
+<div id="down">
+   
+</div>
+ 
+ <script type="text/javascript">
+   
+ //======== Mettez votre code ici =====
+  var Example = Example || {};
+   
+   Example.moveInSpace = function (){
+   //================================
+    // module aliases
+     var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Composites = Matter.Composites,
+        Constraint = Matter.Constraint,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        Composite = Matter.Composite,
+        Bodies = Matter.Bodies,
+        Body = Matter.Body,
+        Vector = Matter.Vector,
+        Common = Matter.Common,
+        Events = Matter.Events;
+
+    // create engine
+    var engine = Engine.create({
+      gravity: {
+        x: 0,
+        y: 1
+      }
+    }),
+    world = engine.world;
+
+var canv = document.getElementById("world");
+
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        canvas: canv,
+        options: {
+            width: 360,
+            height: 520,
+            showAngleIndicator: true,
+            showCollisions: true,
+            showVelocity: true,
+            wireframes:false
+        }
+    });
+
+    Render.run(render);
+
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+  //=================================
+  
+     // CODE PRINCIPAL
+     
+   //---------------------------------
+   
+      var container = document.getElementById("containerBtn");
+      
+      container.before(canv);
+      
+       var btnUp = document.getElementById("up");
+       var btnDown = document.getElementById("down");
+       var btnLeft = document.getElementById("left");
+       var btnRight = document.getElementById("right");
+      
+   //------------------------------- 
+    // normal ground
+    var nGround1 = Bodies.rectangle((360/2)+0,(20/2)+510, 360, 20, {
+       render: {
+         fillStyle: "gray"
+       },
+       isStatic: true
+    });
+   //--------------------
+   var nGround2 = Bodies.rectangle(25,310,50,10, {
+       render: {
+         fillStyle: "gray"
+       },
+       isStatic: true,
+       chamfer: {
+        radius: [0,5,0,0]
+      }
+    });
+  //--------------------
+   var nGround3 = Bodies.rectangle(335,310,50,10, {
+       render: {
+         fillStyle: "gray"
+       },
+       isStatic: true,
+       chamfer: {
+        radius: [5,0,0,0]
+      }
+    });
+   
+   
+   
+//=====================================
+ // blocBridge (les blocks qui permettent d'attacher le pont, ces blocs peuvent servir à autre chose)
+ 
+// blocBridge1
+ var blocBridge1 = Bodies.rectangle(25,410,50,200,{
+   isStatic: true,
+   render: {
+     fillStyle: "gray"
+   }
+ });
+ 
+// blocBridge2
+ var blocBridge2 = Bodies.rectangle(335,410,50,200,{
+   isStatic: true,
+   render: {
+     fillStyle: "gray"
+   }
+ });
+
+
+//=====================================
+ // Bridges
+ function bridge(x1,y1,x2,y2,bridgeColor,bridgeLength,offset){
+   // data
+    var stackX = x1,
+        stackY = y1,
+        constraint1X = x1 - offset,
+        constraint1Y = y1,
+        constraint2X = x2 + offset,
+        constraint2Y = y2,
+       nbBridgeElems = Math.ceil(((x2 - x1)/30)-2),
+       bridgeColor = bridgeColor,
+       bridgeLength = bridgeLength;
+   
+   
+    // add bodies
+    var group = Body.nextGroup(true);
+
+    var bridge = Composites.stack(stackX, stackY, nbBridgeElems, 1, 0, 0, function(x, y) {
+        return Bodies.rectangle(x - 20, y, 55, 15, { 
+            collisionFilter: { group: group },
+            chamfer: 5,
+            density: 0.005,
+            frictionAir: 0.05,
+            render: {
+                fillStyle: bridgeColor
+            }
+        });
+    });
+    
+    Composites.chain(bridge, 0.3, 0, -0.3, 0, { 
+        stiffness: 0.3,
+        length: bridgeLength,
+        render: {
+            visible: false
+        }
+    });
+    
+   var startConst = Constraint.create({ 
+            pointA: { x: constraint1X, y: constraint1Y }, 
+            bodyB: bridge.bodies[0], 
+            pointB: { x: -25, y: 0 },
+            length: 5,
+            stiffness: 0.9,
+            render: {
+              visible: false
+            }
+        });
+   var endConst = Constraint.create({ 
+            pointA: { x: constraint2X, y: constraint2Y }, 
+            bodyB: bridge.bodies[bridge.bodies.length - 1], 
+            pointB: { x: 25, y: 0 },
+            length: 5,
+            stiffness: 0.9,
+            render: {
+              visible: false
+            }
+        });
+   
+   return {
+     bridge: bridge,
+     startConst: startConst,
+     endConst: endConst
+   };
+ }
+ //-----------------
+  //(un bridge est constitué de bridge: Le pont lui même, startConst: la corde qui attache le pont au mur(n'importe quel objet) de gauche et endConst: la corde qui attache le pont au mur(n'importe quel objet) de droite)
+ //----------------------------
+ // bridge1
+   var bridge1Elems = bridge(blocBridge1.position.x+27,blocBridge1.position.y-100,blocBridge2.position.x-27,blocBridge2.position.y-100,"black",0.00001,0);
+   
+   var bridge1 = [
+       bridge1Elems.bridge,bridge1Elems.startConst,bridge1Elems.endConst
+     ];
+   
+ //----------------------------
+ 
+ //-----------------------------------
+
+
+
+  //==============================
+  // Grounds ( Normal Grounds)
+   var tabNGround = [
+      nGround1,nGround2,nGround3
+     ];
+ 
+ 
+ // Bridge (Pont)
+   var tabBridge = [
+      bridge1
+     ];
+   
+ // blocBridge
+   var tabBlocBridge = [
+      blocBridge1,blocBridge2
+     ];
+   
+//=====================================
+   
+  
+   // player1 character 
+     // initial Data Player1
+     var player1Data = {
+       x: render.options.width / 2,
+       y: render.options.height / 2,
+       size: 15,
+       speed: 0.5,
+       speedOnNGround: 4,
+       speedInAir: 0.3,
+       speedOnBridge: 0.4,
+       jumpStrengh: 25,
+       frictionNGround: 0.3,
+       frictionInAir: 0.01,
+       color: "green",
+       allowUp: false,
+       allowDown: false
+     };
+    // player1
+     var player1 = Bodies.circle(player1Data.x, player1Data.y, player1Data.size, {
+         render: {
+          fillStyle: player1Data.color
+       },
+       frictionAir: player1Data.frictionInAir
+     });
+     
+   //---------------------------------
+   // Add objects in world
+     Composite.add(world, [
+       player1,
+       
+       tabNGround[0],tabNGround[1],tabNGround[2],
+       
+      tabBlocBridge[0],tabBlocBridge[1],
+      
+      tabBridge[0][0],tabBridge[0][1],tabBridge[0][2]
+      
+    ]);
+  
+  
+  
+//========= CHECKER LES COLLISIONS =====
+
+ // Control friction , DOWN and UP movements of player and apply condition to player according to its state
+
+ // "collisionActive" execute collisionStart dès que et tant que l'élément est en collision avec l'objet alors que 
+// "collisionStart" s'exécute une seule fois dès que l'élément entre en collision avec l'objet et après il ne s'exécute plus
+// "collisionEnd" s'exécute une seule fois dès que l'élément quitte , n'est plus en collision avec l'objet et il ne s'exécute plus
+
+  Events.on(engine, 'collisionActive', function(event) {
+        var pairs = event.pairs;
+        
+      //########## Pour les Normals Grounds
+      for(var k = 0; k < tabNGround.length; k++){
+         
+         // les pairs de collision 
+        for (var i = 0, j = pairs.length; i != j; ++i) {
+            var pair = pairs[i];
+
+            if (pair.bodyA === tabNGround[k] && pair.bodyB === player1) {
+              
+             pair.bodyB.frictionAir = player1Data.frictionNGround;
+              player1Data.allowUp = true;
+              player1Data.speed = player1Data.speedOnNGround;
+              
+            
+            } else if (pair.bodyB === tabNGround[k] && pair.bodyA === player1) {
+              
+              pair.bodyA.frictionAir = player1Data.frictionNGround;
+              player1Data.allowUp = true;
+              player1Data.speed = player1Data.speedOnNGround;
+                
+            }
+          }
+        }
+    //============================
+    //########## Pour les bridges
+    for(var k = 0; k < tabBridge.length; k++){
+       
+       // les éléments de chaque bridge
+      for(var m = 0; m < tabBridge[0][0].bodies.length; m++){
+       
+         // les pairs de collision 
+        for (var i = 0, j = pairs.length; i != j; ++i) {
+            var pair = pairs[i];
+
+            if (pair.bodyA === tabBridge[0][0].bodies[m] && pair.bodyB === player1) {
+              
+               player1Data.allowUp = true;
+               player1Data.speed = player1Data.speedOnBridge;
+              
+              
+            
+             } else if (pair.bodyB === tabBridge[0][0].bodies[m] && pair.bodyA === player1) {
+              
+               player1Data.allowUp = true;
+               player1Data.speed = player1Data.speedOnBridge;
+                
+                
+             }
+           }
+         }
+        }
+      //============================
+
+        
+    }
+  );
+
+   //---------------------------------
+   
+    Events.on(engine, 'collisionEnd', function(event) {
+  
+        player1.frictionAir = player1Data.frictionInAir;
+        player1Data.allowUp = false;
+        player1Data.speed = player1Data.speedInAir;
+              
+     }
+   );
+
+//===== CHECKER LES COLLISIONS FIN =====
+    
+    
+    
+  // Control player movements ----------
+     // UP
+       btnUp.addEventListener("pointerdown",function(){
+        if(player1Data.allowUp){
+          Body.applyForce(player1, player1.position, {
+            x: 0,
+            y: - (player1.mass * player1Data.jumpStrengh * engine.gravity.scale)
+          });
+         }
+       },false);
+       
+     // DOWN
+       btnDown.addEventListener("pointerdown",function(){
+        if(player1Data.allowDown){
+          Body.applyForce(player1, player1.position, {
+            x: 0,
+            y: player1.mass * player1Data.speed * engine.gravity.scale
+          });
+        }
+       },false);
+       
+    // Move continuously player left or right  
+     // ========== LEFT
+      var checkLeft;
+       btnLeft.addEventListener("pointerdown",function(){
+         checkLeft = true;
+       },false);
+       
+       btnLeft.addEventListener("pointerup",function(){
+         checkLeft = false;
+       },false);
+       
+     //-----------------------------
+     // ========= RIGHT
+       var checkRight;
+       btnRight.addEventListener("pointerdown",function(){
+         checkRight = true;
+       },false);
+       
+       btnRight.addEventListener("pointerup",function(){
+         checkRight = false;
+       },false);
+     
+   
+      // ------- APPLY THE CODE -------
+      (function moveLeftRight(event){
+        // Left
+        // Si checkLeft == true : faire ceci sinon ne rien faire 
+        if(checkLeft === true){
+          Body.applyForce(player1, player1.position, {
+            x: - (player1.mass * player1Data.speed * engine.gravity.scale),
+            y: 0
+          });
+        }
+          
+      //==========================
+        // Right 
+       // Si checkRight == true : faire ceci sinon ne rien faire 
+       if(checkRight === true){
+          Body.applyForce(player1, player1.position, {
+            x: player1.mass * player1Data.speed * engine.gravity.scale,
+            y: 0
+          });
+        }
+        
+  
+        requestAnimationFrame(moveLeftRight);
+      })();
+
+//=====================================
+// Camera On Axe X following Player1
+
+   var minX=0 ,minY=0 ,maxX=render.canvas.width ,maxY=render.canvas.height;
+    
+   (function renderShow(param){
+   /*  if(ball.position.x + 0.33 > render.bounds.min.x + 230){
+      
+      minX += ball.speed;
+    }else if(ball.position.x - 0.33 < render.bounds.min.x + 100){
+      
+      minX -= ball.speed;
+    } 
+
+     
+    Render.lookAt(render,{
+      min:{
+        x: minX,
+        y: minY
+      },
+      max:{
+        x: maxX,
+        y: maxY
+      }
+    },undefined,true);
+  */
+    
+  /*  
+    Render.lookAt(render,{
+      min:{
+        x: player1.position.x - 10,
+        y: minY
+      },
+      max:{
+        x: player1.position.x + 10,
+        y: maxY
+      }
+    },undefined,true);
+  */
+    
+    requestAnimationFrame(renderShow);
+    
+  })();
+  
+//====================================
+   // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
+            }
+        });
+
+    Composite.add(world, mouseConstraint);
+
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
+     
+     
+  //===================================
+     return {
+        engine: engine,
+        runner: runner,
+        render: render,
+        canvas: render.canvas,
+        stop: function() {
+            Matter.Render.stop(render);
+            Matter.Runner.stop(runner);
+        }
+    };
+  };
+   
+ //================================
+   
+   
+// Lancement de l'exemple : "airFiction" doit être remplacé par le nom de l'exemple
+window.addEventListener("load",Example.moveInSpace,false);
+
+ </script>
+</body>
+</html>

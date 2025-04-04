@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Template for MatterJS Exemple</title>
+  <style>
+    *{
+      box-sizing: border-box;
+    }
+    html,body{
+      padding: 0px;
+      margin: 0px;
+    }
+    
+    #up,#down,#left,#right{
+      border: 1px solid black;
+      width: 33.33%;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    
+    #up:hover,#down:hover,#left:hover,#right:hover{
+      background: green;
+    }
+    
+    #containerBtn{
+      border: 1px solid black;
+      display: flex;
+      justify-content: space-evenly;
+    }
+    
+  </style>
+  
+       <script src="../plugin--For--MatterJS/pathsegSVG.js" type="text/javascript"></script>
+       
+       <script src="../plugin--For--MatterJS/poly-decomp.js" type="text/javascript"></script>
+         
+       <script src="../matter2.js" type="text/javascript"></script>
+       
+       <script src="../plugin--For--MatterJS/matter-wrap.js" type="text/javascript"></script>
+
+       <script src="../plugin--For--MatterJS/matter-attractors.js" type="text/javascript"></script>
+       
+       <script src="/__My_Js_Library/Canvas/myCanvas.js" type="text/javascript"></script>
+</head>
+<body>
+  <canvas id="world">
+    
+  </canvas>
+ 
+<div id="containerBtn">
+  
+ <div id="up">
+   UP
+ </div>
+ <div id="left">
+   LEFT
+ </div>
+ <div id="right">
+   RIGHT
+ </div>
+ 
+</div>
+
+<div id="down">
+   DOWN
+</div>
+ 
+ <script type="text/javascript">
+   
+ //======== Mettez votre code ici =====
+  var Example = Example || {};
+   
+   Example.moveInSpace = function (){
+   //================================
+    // module aliases
+     var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Composites = Matter.Composites,
+        Constraint = Matter.Constraint,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        Composite = Matter.Composite,
+        Bodies = Matter.Bodies,
+        Body = Matter.Body,
+        Vector = Matter.Vector,
+        Common = Matter.Common,
+        Events = Matter.Events;
+
+    // create engine
+    var engine = Engine.create({
+      gravity: {
+        x: 0,
+        y: 0
+      }
+    }),
+    world = engine.world;
+
+var canv = document.getElementById("world");
+
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        canvas: canv,
+        options: {
+            width: 360,
+            height: 520,
+            showAngleIndicator: true,
+            showCollisions: true,
+            showVelocity: true,
+            wireframes:false
+        }
+    });
+
+    Render.run(render);
+
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+  //=================================
+     // CODE PRINCIPAL
+   //---------------------------------
+   
+      var container = document.getElementById("containerBtn");
+      
+      container.before(canv);
+      
+       var btnUp = document.getElementById("up");
+       var btnDown = document.getElementById("down");
+       var btnLeft = document.getElementById("left");
+       var btnRight = document.getElementById("right");
+      
+   //------------------------------- 
+    // player character 
+     var player1Data = {
+       x: render.options.width / 2,
+       y: render.options.height / 2,
+       size: 15,
+       speed: 10,
+       color: "green"
+     };
+     var player1 = Bodies.circle(player1Data.x, player1Data.y, player1Data.size, {
+         render: {
+          fillStyle: player1Data.color
+       },
+       frictionAir: 0.1
+     });
+     
+   (function draw(){
+     var ctx = render.context;
+     ctx.beginPath();
+     ctx.strokeStyle="red";
+     ctx.fillStyle="blue";
+    // ctx.arc(player1.position.x, player1.position.y, player1Data.size+10, 0, Math.PI*2, false);
+    
+   // ctx.rect(player1.position.x-25, player1.position.y-25, 50, 50);
+    
+    ctx.rect(player1.position.x-50, player1.position.y-50, 100, 100);
+   
+     ctx.stroke();
+     
+     window.requestAnimationFrame(draw);
+   })();
+     
+     var block = Bodies.circle(200, 100, 20,{
+       frictionAir:0.01
+     });
+     
+   // Add player in world
+     Composite.add(world, [player1, block]);
+    
+    
+  // Control player -----------------
+     // UP
+       btnUp.addEventListener("click",function(){
+          Body.applyForce(player1, player1.position, {
+            x: 0,
+            y: - (player1.mass * player1Data.speed * engine.gravity.scale)
+          });
+       },false);
+     // DOWN
+       btnDown.addEventListener("click",function(){
+          Body.applyForce(player1, player1.position, {
+            x: 0,
+            y: player1.mass * player1Data.speed * engine.gravity.scale
+          });
+       },false);
+     // LEFT
+       btnLeft.addEventListener("click",function(){
+          Body.applyForce(player1, player1.position, {
+            x: - (player1.mass * player1Data.speed * engine.gravity.scale),
+            y: 0
+          });
+       },false);
+     // RIGHT
+       btnRight.addEventListener("click",function(){
+          Body.applyForce(player1, player1.position, {
+            x: player1.mass * player1Data.speed * engine.gravity.scale,
+            y: 0
+          });
+       },false);
+     
+     
+     
+   
+  //==================================
+   // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
+            }
+        });
+
+    Composite.add(world, mouseConstraint);
+
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
+     
+     
+  //===================================
+     return {
+        engine: engine,
+        runner: runner,
+        render: render,
+        canvas: render.canvas,
+        stop: function() {
+            Matter.Render.stop(render);
+            Matter.Runner.stop(runner);
+        }
+    };
+  };
+   
+ //================================
+   
+   
+// Lancement de l'exemple : "airFiction" doit être remplacé par le nom de l'exemple
+window.addEventListener("load",Example.moveInSpace,false);
+ </script>
+</body>
+</html>

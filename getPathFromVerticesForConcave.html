@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> Outil permettant d'obtenir un chemin à partir de sommets dessinés sur un canvas</title>
+  
+  <style type="text/css">
+    *{
+      box-sizing: border-box;
+    }
+    
+    html,body{
+      margin: 0px;
+      padding: 0px;
+    }
+    
+    #canv{
+      border: 1px solid black;
+    }
+    
+    #path{
+      border: 1px solid red;
+      height: 100px;
+      overflow: hidden scroll;
+      font-size: 15px;
+    }
+    
+    .axe{
+      border: 1px solid black;
+      width: 100px;
+      height: 100px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .axe:hover{
+      background: green;
+    }
+    
+    .axeInp{
+      width: 100px;
+    }
+    
+    .axeResult{
+      border: 1px solid red;
+      height: 100px;
+      overflow: hidden scroll;
+      font-size: 15px;
+    }
+  </style>
+  
+</head>
+<body>
+  <h3>Obtenir le chemin créé à partir de ces sommets (points)</h3>
+ <h2 id="path"></h2>
+ <br>
+ <canvas id="canv" width="600" height="400">
+ </canvas>
+ 
+ 
+ <div id="axeX" class="axe">
+   Axe X
+ </div>
+<input type="number" name="axeX" id="axeXInp" class="axeInp">
+<h2 id="axeXResult" class="axeResult">
+  
+</h2>
+
+ <br><br>
+ 
+  <div id="axeY" class="axe">
+   Axe Y
+ </div>
+<input type="number" name="axeY" id="axeYInp" class="axeInp"> 
+ <h2 id="axeYResult" class="axeResult">
+  
+ </h2>
+ 
+ <script type="text/javascript">
+ 
+           // AXE X
+var axeX = document.getElementById("axeX");
+var axeXInp = document.getElementById("axeXInp");
+var axeXResult = document.getElementById("axeXResult");
+
+             // AXE Y
+var axeY = document.getElementById("axeY");
+var axeYInp = document.getElementById("axeYInp");
+var axeYResult = document.getElementById("axeYResult");
+
+//=================================
+
+// créé le canvas
+  var canv = document.getElementById("canv");
+  var ctx = canv.getContext("2d");
+  
+// obtenir la position (x,y) de l'utilisateur par rapport à l'origine du canvas et non plus du body
+ var mousePosX, mousePosY;
+ function handleClick(e){
+   var bound = canv.getBoundingClientRect();
+   mousePosX = e.clientX - bound.left;
+   mousePosY = e.clientY - bound.top;
+ }
+ canv.addEventListener("click",handleClick,false);
+ 
+ 
+ // dessiner un point sous la position de l'utilisateur sur le canvas
+ ctx.lineWidth = 1;
+ 
+ function drawPoint(){
+   ctx.arc(mousePosX, mousePosY,1,0,2*Math.PI,false);
+   ctx.stroke();
+ }
+ canv.addEventListener("click",drawPoint,false);
+ 
+ ctx.beginPath();
+ 
+ 
+// Obtenir le chemin créé à partir de ces sommets (points)
+var path = document.getElementById("path");
+ function getPath(){
+   path.innerHTML += ` ${Math.floor(mousePosX)} ${Math.floor(mousePosY)}`;
+ }
+ canv.addEventListener("click",getPath,false);
+ 
+ //====================================
+   var tabModelPath = [];
+   function savePath(){
+     tabModelPath.push({
+       x: mousePosX,
+       y: mousePosY
+     });
+   }
+canv.addEventListener("click", savePath,false);
+ 
+//=====================================
+
+//=========== AXE X / AXE X ============
+var tabAxeXPoint = [];
+function axeXFunc(){
+  if(axeXInp.value != ""){
+    tabAxeXPoint[0] = {
+      start: {
+        x: 0,
+        y: Number.parseInt(axeXInp.value)
+      },
+      end: {
+        x: canv.width,
+        y: Number.parseInt(axeXInp.value)
+      }
+    };
+  }
+}
+
+function handleAxeX(){
+  axeXFunc();
+  
+// dessiner l'axe X sur le canvas
+ctx.beginPath();
+  ctx.moveTo(tabAxeXPoint[0].start.x, tabAxeXPoint[0].start.y);
+  ctx.lineTo(tabAxeXPoint[0].end.x, tabAxeXPoint[0].end.y);
+ctx.stroke();
+  
+// dessiner le reflet miroir du dessin model
+
+// le chemin miroir
+var tabMirorPathX = [];
+
+ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.moveTo(tabModelPath[0].x, Number.parseInt(axeXInp.value) + (Number.parseInt(axeXInp.value) - tabModelPath[0].y));
+  
+    // Enregistrer le chemin miroir
+     tabMirorPathX.push(" " + tabModelPath[0].x + " " + (Number.parseInt(Number.parseInt(axeXInp.value) + (Number.parseInt(axeXInp.value) - tabModelPath[0].y))) + " ");
+  
+  for(var i = 1;i < tabModelPath.length; i++ ){
+    
+    ctx.lineTo(tabModelPath[i].x, Number.parseInt(axeXInp.value) + (Number.parseInt(axeXInp.value) - tabModelPath[i].y));
+    
+    // Enregistrer le chemin miroir
+     tabMirorPathX.push(" " + tabModelPath[i].x + " " + (Number.parseInt(Number.parseInt(axeXInp.value) + (Number.parseInt(axeXInp.value) - tabModelPath[i].y))) + " ");
+     
+  }
+ctx.stroke();
+
+// Recuperer le chemin mirroir
+  for(var i = 0;i < tabMirorPathX.length; i++){
+    
+    axeXResult.innerHTML += tabMirorPathX[i];
+    
+  }
+  
+  
+}
+axeX.addEventListener("click",handleAxeX);
+//====FIN == AXE X / AXE X ============
+
+//=========== AXE Y / AXE Y ============
+var tabAxeYPoint = [];
+function axeYFunc(){
+  if(axeYInp.value != ""){
+    tabAxeYPoint[0] = {
+      start: {
+        x: Number.parseInt(axeYInp.value),
+        y: 0
+      },
+      end: {
+        x: Number.parseInt(axeYInp.value),
+        y: canv.height
+      }
+    };
+  }
+}
+
+function handleAxeY(){
+  axeYFunc();
+  
+// dessiner l'axe Y sur le canvas
+ctx.beginPath();
+  ctx.moveTo(tabAxeYPoint[0].start.x, tabAxeYPoint[0].start.y);
+  ctx.lineTo(tabAxeYPoint[0].end.x, tabAxeYPoint[0].end.y);
+ctx.stroke();
+  
+// dessiner le reflet miroir du dessin model
+
+// le chemin miroir
+var tabMirorPathY = [];
+
+ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.moveTo(Number.parseInt(axeYInp.value) + (Number.parseInt(axeYInp.value) - tabModelPath[0].x), tabModelPath[0].y);
+  
+    // Enregistrer le chemin miroir
+     tabMirorPathY.push(" " +  (Number.parseInt(Number.parseInt(axeYInp.value) + (Number.parseInt(axeYInp.value) - tabModelPath[0].x))) + " " + Number.parseInt(tabModelPath[0].y) + " ");
+  
+  for(var i = 1;i < tabModelPath.length; i++ ){
+    
+    ctx.lineTo(Number.parseInt(axeYInp.value) + (Number.parseInt(axeYInp.value) - tabModelPath[i].x), tabModelPath[i].y);
+    
+    // Enregistrer le chemin miroir
+     tabMirorPathY.push(" " +  (Number.parseInt(Number.parseInt(axeYInp.value) + (Number.parseInt(axeYInp.value) - tabModelPath[i].x))) + " " + Number.parseInt(tabModelPath[i].y) + " ");
+     
+  }
+ctx.stroke();
+
+// Recuperer le chemin mirroir
+  for(var i = 0;i < tabMirorPathY.length; i++){
+    
+    axeYResult.innerHTML += tabMirorPathY[i];
+    
+  }
+  
+  
+}
+axeY.addEventListener("click",handleAxeY);
+//====FIN == AXE Y / AXE Y ============
+
+
+ </script>
+ 
+</body>
+</html>
