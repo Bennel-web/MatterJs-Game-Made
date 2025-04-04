@@ -1,0 +1,9 @@
+Some of the externals scripts I used are not useful
+in some files : For example for the buttonMachinsMechanics
+the scripts : pathSeg.js,poly-decomp, matterWrap.js,attractors
+and myCanvas.js are not useful but in
+some other files ,they're useful.
+These are realatives paths but you can 
+download all these scripts on github apart
+myCanvas.js wich is mine.
+Search on github for all these scripts
